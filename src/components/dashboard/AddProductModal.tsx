@@ -13,6 +13,8 @@ const productSchema = z.object({
   price: z.number().min(0, "Price must be positive"),
   description: z.string().min(1, "Description is required"),
   categoryId: z.number().min(1, "Category ID is required"),
+  categoryName: z.string().min(1, "Category name is required"),
+  categoryImage: z.string().url("Invalid category image URL"),
   images: z.string().min(1, "At least one image URL is required"),
 });
 
@@ -38,6 +40,13 @@ export default function AddProductModal({
     await addProduct.mutateAsync({
       ...data,
       images: data.images.split(",").map((url) => url.trim()),
+      slug: data.title.toLowerCase().replace(/\s+/g, "-"),
+      category: {
+        id: data.categoryId,
+        name: data.categoryName,
+        slug: data.categoryName.toLowerCase().replace(/\s+/g, "-"),
+        image: data.categoryImage,
+      }
     });
     onClose();
   };
@@ -56,6 +65,7 @@ export default function AddProductModal({
               <p className="text-sm text-red-500">{errors.title.message}</p>
             )}
           </div>
+
           <div>
             <Label htmlFor="price">Price</Label>
             <Input
@@ -67,15 +77,15 @@ export default function AddProductModal({
               <p className="text-sm text-red-500">{errors.price.message}</p>
             )}
           </div>
+
           <div>
             <Label htmlFor="description">Description</Label>
             <Input id="description" {...register("description")} />
             {errors.description && (
-              <p className="text-sm text-red-500">
-                {errors.description.message}
-              </p>
+              <p className="text-sm text-red-500">{errors.description.message}</p>
             )}
           </div>
+
           <div>
             <Label htmlFor="categoryId">Category ID</Label>
             <Input
@@ -89,13 +99,35 @@ export default function AddProductModal({
               </p>
             )}
           </div>
+
           <div>
-            <Label htmlFor="images">Image URLs (comma separated)</Label>
+            <Label htmlFor="categoryName">Category Name</Label>
+            <Input id="categoryName" {...register("categoryName")} />
+            {errors.categoryName && (
+              <p className="text-sm text-red-500">
+                {errors.categoryName.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="categoryImage">Category Image URL</Label>
+            <Input id="categoryImage" {...register("categoryImage")} />
+            {errors.categoryImage && (
+              <p className="text-sm text-red-500">
+                {errors.categoryImage.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="images">Product Image URLs (comma separated)</Label>
             <Input id="images" {...register("images")} />
             {errors.images && (
               <p className="text-sm text-red-500">{errors.images.message}</p>
             )}
           </div>
+
           <div className="flex justify-end space-x-2">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel

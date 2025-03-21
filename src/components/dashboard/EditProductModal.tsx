@@ -54,9 +54,12 @@ export default function EditProductModal({
       price: data.price,
       description: data.description,
       images: data.images.split(",").map((url) => url.trim()),
+      slug: product.slug, // Preserve existing slug or generate new one
       category: {
         id: data.categoryId,
         name: product.category.name,
+        image: product.category.image,
+        slug: product.category.slug,
       },
     });
     onClose();
@@ -76,6 +79,7 @@ export default function EditProductModal({
               <p className="text-sm text-red-500">{errors.title.message}</p>
             )}
           </div>
+
           <div>
             <Label htmlFor="price">Price</Label>
             <Input
@@ -87,15 +91,15 @@ export default function EditProductModal({
               <p className="text-sm text-red-500">{errors.price.message}</p>
             )}
           </div>
+
           <div>
             <Label htmlFor="description">Description</Label>
             <Input id="description" {...register("description")} />
             {errors.description && (
-              <p className="text-sm text-red-500">
-                {errors.description.message}
-              </p>
+              <p className="text-sm text-red-500">{errors.description.message}</p>
             )}
           </div>
+
           <div>
             <Label htmlFor="categoryId">Category ID</Label>
             <Input
@@ -109,6 +113,7 @@ export default function EditProductModal({
               </p>
             )}
           </div>
+
           <div>
             <Label htmlFor="images">Image URLs (comma separated)</Label>
             <Input id="images" {...register("images")} />
@@ -116,11 +121,12 @@ export default function EditProductModal({
               <p className="text-sm text-red-500">{errors.images.message}</p>
             )}
           </div>
+
           <div className="flex justify-end space-x-2">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit">Save Changes</Button>
+            <Button type="submit">Update</Button>
           </div>
         </form>
       </div>

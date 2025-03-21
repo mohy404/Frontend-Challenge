@@ -1,7 +1,16 @@
-import NextAuth from "next-auth";
+import NextAuth, { type AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { DefaultSession } from "next-auth";
 
-export const authOptions = {
+declare module "next-auth" {
+  interface Session extends DefaultSession {
+    user: {
+      email: string;
+    } & DefaultSession["user"];
+  }
+}
+
+const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -10,17 +19,14 @@ export const authOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        // بيانات المستخدم الثابتة
         const user = { id: "1", email: "john@mail.com", password: "changeme" };
-
-        // التحقق من البريد الإلكتروني وكلمة المرور
         if (
           credentials?.email === user.email &&
           credentials?.password === user.password
         ) {
-          return user; // تسجيل الدخول ناجح
+          return user;
         }
-        return null; // تسجيل الدخول فاشل
+        return null;
       },
     }),
   ],
@@ -32,16 +38,19 @@ export const authOptions = {
       return token;
     },
     async session({ session, token }) {
-      session.user.email = token.email;
+      if (!session.user) {
+        session.user = { email: "", name: null, image: null };
+      }
+      session.user.email = token.email as string;
       return session;
     },
   },
   pages: {
-    signIn: "/login", // توجيه المستخدم إلى صفحة تسجيل الدخول
+    signIn: "/login",
   },
   session: {
-    strategy: "jwt", // استخدام JWT لإدارة الجلسة
-    maxAge: 30 * 60, // انتهاء صلاحية الجلسة بعد 30 دقيقة
+    strategy: "jwt",
+    maxAge: 30 * 60, // Corrected from maxDuration to maxAge
   },
 };
 
