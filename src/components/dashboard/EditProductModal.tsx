@@ -33,7 +33,6 @@ export default function EditProductModal({
     register,
     handleSubmit,
     formState: { errors },
-    reset,
   } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
     defaultValues: product

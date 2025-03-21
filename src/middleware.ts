@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   // Only apply to API requests to the Platzi API
   if (request.nextUrl.pathname.startsWith("/api/products")) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const headers = new Headers(request.headers);
 
     // Forward the request to Platzi API

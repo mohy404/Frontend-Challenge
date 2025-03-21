@@ -11,7 +11,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
     // Try to write using the Clipboard API
     await navigator.clipboard.writeText(text);
     return true;
-  } catch (error) {
+  } catch {
     // Fallback: Create a temporary textarea element
     try {
       const textarea = document.createElement("textarea");
