@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frontend Challenge - E-commerce Application
+
+## Overview
+
+This is a modern e-commerce application built with Next.js 15, featuring a robust authentication system, product management, and a responsive user interface.
+
+## Features
+
+### Authentication
+
+- Secure login system using NextAuth.js
+- Protected routes and API endpoints
+- Test credentials:
+  - Email: john@mail.com
+  - Password: changeme
+
+### Product Management
+
+- Product listing with pagination
+- Product details view
+- Shopping cart management
+
+### State Management
+
+- Zustand for global state management
+- React Query for server state management and caching
+
+### UI Components
+
+- Modern UI built with Shadcn components
+- Responsive design for all screen sizes
+- Dark/Light mode support
+- Loading states and error handling
+
+## Project Structure
+
+```
+├── app/
+│   ├── api/         # API routes
+│   ├── auth/        # Authentication pages
+│   ├── products/    # Product-related pages
+│   └── layout.tsx   # Root layout
+├── components/
+│   ├── ui/         # Reusable UI components
+│   ├── auth/       # Authentication components
+│   └── products/   # Product-related components
+├── hooks/          # Custom React hooks
+├── lib/            # Utility functions
+├── store/          # Zustand store configurations
+└── types/          # TypeScript type definitions
+```
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Set up environment variables:
+   ```env
+   NEXT_PUBLIC_API_URL=https://api.escuelajs.co/api/v1
+   ```
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Available Scripts
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm start` - Start production server
+- `npm run lint` - Run ESLint
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Next.js 15
+- TypeScript
+- NextAuth.js
+- React Query
+- Zustand
+- Zod 
+- Shadcn UI
+- Tailwind CSS
 
-## Learn More
 
-To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Contributing
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request
