@@ -76,8 +76,8 @@ const authOptions: AuthOptions = {
     strategy: "jwt",
     maxAge: 30 * 60, // 30 دقيقة
   },
-  secret: process.env.NEXTAUTH_SECRET, // 9. استخدام السر البيئي
-  debug: process.env.NODE_ENV === "development" // 10. تفعيل وضع التصحيح
+  secret: process.env.NEXTAUTH_SECRET, 
+  debug: process.env.NODE_ENV === "development"
 };
 
 const handler = NextAuth(authOptions);
