@@ -3,16 +3,6 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { DefaultSession } from "next-auth";
 import api from "@/lib/api";
 
-// تعريف نوع للخطأ
-interface ApiError {
-  response?: {
-    data?: {
-      message?: string;
-    };
-  };
-  message: string;
-}
-
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
@@ -30,8 +20,8 @@ declare module "next-auth" {
     email: string;
     name: string;
     avatar?: string;
-    access_token: string;
-    refresh_token: string;
+    accessToken: string;
+    refreshToken: string;
   }
 }
 
@@ -45,30 +35,27 @@ const authOptions: AuthOptions = {
       },
       async authorize(credentials) {
         try {
-          const response = await api.post("/auth/login", {
+          const loginResponse = await api.post("/auth/login", {
             email: credentials?.email,
             password: credentials?.password,
           });
 
-          const { access_token, refresh_token } = response.data;
+          const { access_token: accessToken, refresh_token: refreshToken } = loginResponse.data;
 
           const profileResponse = await api.get("/auth/profile", {
-            headers: {
-              Authorization: `Bearer ${access_token}`,
-            },
+            headers: { Authorization: `Bearer ${accessToken}` }
           });
 
           return {
             ...profileResponse.data,
-            access_token,
-            refresh_token,
+            id: profileResponse.data.id.toString(),
+            accessToken,
+            refreshToken,
           };
-        } catch (error: unknown) {
-          // تحويل الخطأ إلى النوع المحدد
-          const apiError = error as ApiError;
-          throw new Error(
-            apiError.response?.data?.message || "Authentication failed"
-          );
+
+        } catch (error) {
+          const errorMessage = (error as Error).message || "Authentication failed";
+          throw new Error(errorMessage);
         }
       },
     }),
@@ -76,23 +63,28 @@ const authOptions: AuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.accessToken = user.access_token;
-        token.refreshToken = user.refresh_token;
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
+        token.avatar = user.avatar;
+        token.accessToken = user.accessToken;
+        token.refreshToken = user.refreshToken;
       }
       return token;
     },
     async session({ session, token }) {
-      session.user = {
-        id: token.id as string,
-        email: token.email as string,
-        name: token.name as string,
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: token.id as string,
+          email: token.email as string,
+          name: token.name as string,
+          avatar: token.avatar as string | undefined,
+        },
+        accessToken: token.accessToken as string,
+        refreshToken: token.refreshToken as string,
       };
-      session.accessToken = token.accessToken as string;
-      session.refreshToken = token.refreshToken as string;
-      return session;
     },
   },
   pages: {
@@ -101,10 +93,21 @@ const authOptions: AuthOptions = {
   },
   session: {
     strategy: "jwt",
-    maxAge: 20 * 24 * 60 * 60, // 20 days
+    maxAge: 20 * 24 * 60 * 60, // 20 يوم
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV === "development",
+  cookies: {
+    sessionToken: {
+      name: "__Secure-next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain: process.env.NODE_ENV === "production" ? ".yourdomain.com" : undefined,
+      },
+    },
+  },
 };
 
 const handler = NextAuth(authOptions);

@@ -1,27 +1,17 @@
+// middleware.ts
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { API_BASE_URL, API_ENDPOINTS, DEFAULT_HEADERS } from "./lib/apiConfig";
 
-export function middleware(request: NextRequest) {
-  // Only apply to API requests to the Platzi API
-  if (request.nextUrl.pathname.startsWith("/api/products")) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const headers = new Headers(request.headers);
-
-    // Forward the request to Platzi API
-    const url = new URL(request.url);
-    const targetUrl = new URL(
-      `${API_BASE_URL}${API_ENDPOINTS.products.base}${url.search}`
-    );
-
-    return NextResponse.rewrite(targetUrl, {
-      headers: DEFAULT_HEADERS,
-    });
-  }
-
-  return NextResponse.next();
+export function middleware() {
+  const response = NextResponse.next();
+  
+  // إعدادات CORS
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  return response;
 }
 
 export const config = {
-  matcher: "/api/products/:path*",
+  matcher: '/api/:path*',
 };
