@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { API_BASE_URL, API_ENDPOINTS, DEFAULT_HEADERS } from "./lib/apiConfig";
 
 export function middleware(request: NextRequest) {
   // Only apply to API requests to the Platzi API
@@ -10,15 +11,11 @@ export function middleware(request: NextRequest) {
     // Forward the request to Platzi API
     const url = new URL(request.url);
     const targetUrl = new URL(
-      `https://api.escuelajs.co/api/v1/products${url.search}`
+      `${API_BASE_URL}${API_ENDPOINTS.products.base}${url.search}`
     );
 
     return NextResponse.rewrite(targetUrl, {
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-      },
+      headers: DEFAULT_HEADERS,
     });
   }
 

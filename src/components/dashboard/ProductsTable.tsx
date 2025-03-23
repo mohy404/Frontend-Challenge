@@ -1,17 +1,20 @@
 "use client";
 
-
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useProducts } from "@/hooks/useProducts";
+import { useProductStore } from "@/store/useProductStore";
 import AddProductModal from "./AddProductModal";
 import EditProductModal from "./EditProductModal";
 import ProductDetailsModal from "./ProductDetailsModal";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import Image from "next/image";
-import { useProductStore } from "@/store/useProductStore";
 
 export default function ProductsTable() {
   const {
+    products,
+    isLoading,
+    error,
     selectedProduct,
     setSelectedProduct,
     currentPage,
@@ -25,27 +28,27 @@ export default function ProductsTable() {
     setEditModalOpen,
     setDetailsModalOpen,
     setDeleteDialogOpen,
+    fetchProducts,
   } = useProductStore();
 
-  const { products, isLoading, deleteProduct } = useProducts({
-    offset: currentPage * itemsPerPage,
-    limit: itemsPerPage,
-  });
+  const { deleteProduct } = useProducts();
 
-  if (isLoading) return <div>Loading...</div>;
+  useEffect(() => {
+    fetchProducts();
+  }, [currentPage, itemsPerPage, fetchProducts]);
 
-  if (!Array.isArray(products)) {
-    return <div>No products found.</div>;
-  }
+  if (isLoading) return <div className="p-4">Loading...</div>;
+  if (error) return <div className="p-4 text-red-500">Error: {error.message}</div>;
 
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+        <h2 className="text-2xl font-bold text-gray-800 flex items-center">
           <span className="mr-2">🛒</span> Product Management
         </h2>
         <Button onClick={() => setAddModalOpen(true)}>Add Product</Button>
       </div>
+
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white border border-gray-200">
           <thead>
@@ -58,33 +61,23 @@ export default function ProductsTable() {
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => (
+            {products?.map((product) => (
               <tr key={product.id}>
                 <td className="px-4 py-2 border-b">
-                  <div className="flex flex-col items-center justify-center">
+                  <div className="relative w-16 h-16">
                     <Image
-                      src={product.images[0]}
+                      src={product.images?.[0] || '/placeholder.png'}
                       alt={product.title}
-                      width={64}
-                      height={64}
-                      className="w-16 h-16 object-cover rounded"
+                      fill
+                      className="object-cover rounded"
+                      sizes="(max-width: 768px) 100vw, 50vw"
                     />
                   </div>
                 </td>
+                <td className="px-4 py-2 border-b">{product.title}</td>
+                <td className="px-4 py-2 border-b">${product.price}</td>
                 <td className="px-4 py-2 border-b">
-                  <div className="flex flex-col">
-                    <span>{product.title}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-2 border-b">
-                  <div className="flex flex-col">
-                    <span>${product.price}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-2 border-b">
-                  <div className="flex flex-col">
-                    <span>{product.category.name}</span>
-                  </div>
+                  {product.category?.name || 'Uncategorized'}
                 </td>
                 <td className="px-4 py-2 border-b">
                   <div className="flex flex-col space-y-2">
@@ -122,7 +115,8 @@ export default function ProductsTable() {
           </tbody>
         </table>
       </div>
-      <div className="mt-4 flex justify-center gap-4">
+
+      <div className="mt-4 flex justify-center items-center gap-4">
         <Button
           variant="outline"
           onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
@@ -130,10 +124,11 @@ export default function ProductsTable() {
         >
           Previous
         </Button>
+        <span>Page {currentPage + 1}</span>
         <Button
           variant="outline"
           onClick={() => setCurrentPage(currentPage + 1)}
-          disabled={!products || products.length < itemsPerPage}
+          disabled={products.length < itemsPerPage}
         >
           Next
         </Button>
@@ -143,16 +138,19 @@ export default function ProductsTable() {
         isOpen={isAddModalOpen}
         onClose={() => setAddModalOpen(false)}
       />
+      
       <EditProductModal
         isOpen={isEditModalOpen}
         onClose={() => setEditModalOpen(false)}
         product={selectedProduct}
       />
+      
       <ProductDetailsModal
         isOpen={isDetailsModalOpen}
         onClose={() => setDetailsModalOpen(false)}
         product={selectedProduct}
       />
+      
       <ConfirmDialog
         isOpen={isDeleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}

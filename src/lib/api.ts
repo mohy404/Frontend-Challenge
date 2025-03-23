@@ -1,15 +1,38 @@
-import axios from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
+import { getSession } from "next-auth/react";
+
+interface ApiErrorResponse {
+  message: string;
+  [key: string]: unknown;
+}
 
 const api = axios.create({
-  baseURL: "/api",
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  timeout: 10000,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-// Interceptor لمعالجة الأخطاء
+api.interceptors.request.use(async (config) => {
+  if (typeof window !== "undefined") {
+    const session = await getSession();
+    
+    if (session?.accessToken) {
+      config.headers.Authorization = `Bearer ${session.accessToken}`;
+    }
+  }
+  return config;
+});
+
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error("API Error:", error);
-    return Promise.reject(error);
+  (response: AxiosResponse) => response,
+  (error: AxiosError) => {
+    const errorMessage = error.response?.data 
+      ? (error.response.data as ApiErrorResponse).message 
+      : error.message;
+      
+    return Promise.reject(new Error(errorMessage));
   }
 );
 

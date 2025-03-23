@@ -1,18 +1,40 @@
 import NextAuth, { type AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { DefaultSession } from "next-auth";
+import api from "@/lib/api";
 
-// 1. تحسين تعريف الجلسة
+// تعريف نوع للخطأ
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+  message: string;
+}
+
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
       email: string;
-    } & DefaultSession["user"];
+      name: string;
+      avatar?: string;
+    };
+    accessToken: string;
+    refreshToken: string;
+  }
+
+  interface User {
+    id: string;
+    email: string;
+    name: string;
+    avatar?: string;
+    access_token: string;
+    refresh_token: string;
   }
 }
 
-// 2. إعداد خيارات المصادقة
 const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
@@ -22,62 +44,67 @@ const authOptions: AuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        // 3. محاكاة اتصال بقاعدة البيانات
-        const mockUser = {
-          id: "1",
-          email: "john@mail.com",
-          password: "changeme",
-          name: "John Doe"
-        };
+        try {
+          const response = await api.post("/auth/login", {
+            email: credentials?.email,
+            password: credentials?.password,
+          });
 
-        // 4. التحقق من بيانات المستخدم
-        if (
-          credentials?.email === mockUser.email &&
-          credentials?.password === mockUser.password
-        ) {
+          const { access_token, refresh_token } = response.data;
+
+          const profileResponse = await api.get("/auth/profile", {
+            headers: {
+              Authorization: `Bearer ${access_token}`,
+            },
+          });
+
           return {
-            id: mockUser.id,
-            email: mockUser.email,
-            name: mockUser.name
+            ...profileResponse.data,
+            access_token,
+            refresh_token,
           };
+        } catch (error: unknown) {
+          // تحويل الخطأ إلى النوع المحدد
+          const apiError = error as ApiError;
+          throw new Error(
+            apiError.response?.data?.message || "Authentication failed"
+          );
         }
-        
-        // 5. إرجاع خطأ عند الفشل
-        throw new Error("Invalid credentials");
       },
     }),
   ],
   callbacks: {
-    // 6. معالجة الـ JWT
     async jwt({ token, user }) {
       if (user) {
+        token.accessToken = user.access_token;
+        token.refreshToken = user.refresh_token;
         token.id = user.id;
         token.email = user.email;
+        token.name = user.name;
       }
       return token;
     },
-    // 7. معالجة الجلسة
     async session({ session, token }) {
-      if (token?.email) {
-        session.user = {
-          ...session.user,
-          id: token.id as string,
-          email: token.email as string
-        };
-      }
+      session.user = {
+        id: token.id as string,
+        email: token.email as string,
+        name: token.name as string,
+      };
+      session.accessToken = token.accessToken as string;
+      session.refreshToken = token.refreshToken as string;
       return session;
     },
   },
   pages: {
     signIn: "/login",
-    error: "/login" // 8. توجيه الأخطاء
+    error: "/login",
   },
   session: {
     strategy: "jwt",
-    maxAge: 30 * 60, // 30 دقيقة
+    maxAge: 20 * 24 * 60 * 60, // 20 days
   },
-  secret: process.env.NEXTAUTH_SECRET, 
-  debug: process.env.NODE_ENV === "development"
+  secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === "development",
 };
 
 const handler = NextAuth(authOptions);
