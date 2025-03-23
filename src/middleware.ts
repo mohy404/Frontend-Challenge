@@ -1,17 +1,18 @@
 // middleware.ts
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server'
 
-export function middleware() {
-  const response = NextResponse.next();
+export async function middleware() {
+  const response = NextResponse.next()
+
+  response.headers.set('Access-Control-Allow-Origin', '*')
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  response.headers.set('Referrer-Policy', 'no-referrer')
+  response.headers.set('X-Content-Type-Options', 'nosniff')
   
-  // إعدادات CORS
-  response.headers.set('Access-Control-Allow-Origin', '*');
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  
-  return response;
+  return response
 }
 
 export const config = {
   matcher: '/api/:path*',
-};
+}
